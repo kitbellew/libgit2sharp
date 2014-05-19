@@ -664,6 +664,7 @@ namespace LibGit2Sharp
             /// This OdbBackend declares that it supports the Exists method.
             /// </summary>
             Exists = 64,
+
             /// <summary>
             /// This OdbBackend declares that it supports the ExistsPrefix method.
             /// </summary>
