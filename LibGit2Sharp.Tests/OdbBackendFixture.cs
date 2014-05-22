@@ -177,10 +177,44 @@ namespace LibGit2Sharp.Tests
             }
         }
 
+        [Fact]
+        public void ADisposableOdbBackendGetsDisposedUponRepositoryDisposal()
+        {
+            string path = InitNewRepository();
+
+            bool hasBeenDisposed = false;
+
+            using (var repo = new Repository(path))
+            {
+                repo.ObjectDatabase.AddBackend(new MockOdbBackend(() => { hasBeenDisposed = true; }), 5);
+
+                Assert.False(hasBeenDisposed);
+            }
+
+            Assert.True(hasBeenDisposed);
+        }
+
         #region MockOdbBackend
 
-        private class MockOdbBackend : OdbBackend
+        private class MockOdbBackend : OdbBackend, IDisposable
         {
+            public MockOdbBackend(Action disposer = null)
+            {
+                this.disposer = disposer;
+            }
+
+            public void Dispose()
+            {
+                if (disposer == null)
+                {
+                    return;
+                }
+
+                disposer();
+
+                disposer = null;
+            }
+
             protected override OdbBackendOperations SupportedOperations
             {
                 get
@@ -321,6 +355,8 @@ namespace LibGit2Sharp.Tests
 
             private readonly Dictionary<ObjectId, MockGitObject> m_objectIdToContent =
                 new Dictionary<ObjectId, MockGitObject>();
+
+            private Action disposer;
 
             #region Unimplemented
 
